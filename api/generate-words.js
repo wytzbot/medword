@@ -10,7 +10,7 @@
 import { CATEGORY_WORDS, CATEGORY_NAMES } from './_lib/words-bank.js';
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
 function cleanTerms(items) {
   const seen = new Set();
