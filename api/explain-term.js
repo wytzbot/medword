@@ -11,7 +11,7 @@ import { CATEGORY_WORDS } from './_lib/words-bank.js';
 import { kvGet } from './_lib/store.js';
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
 function findInBank(word) {
   for (const list of Object.values(CATEGORY_WORDS)) {
