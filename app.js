@@ -107,7 +107,7 @@ function settings(){
  <div class="setting"><span>Sound effects</span><input id="sound" type="checkbox"></div></div>
  <div class="card legal"><h3>Trust & information</h3><div class="list">${[['privacy','Privacy Policy'],['terms','Terms of Service'],['medical-disclaimer','Medical Disclaimer'],['advertising','Advertising Policy'],['subscription','Subscription & Refunds'],['contact','Contact']].map(([f,l])=>`<button class="btn ghost legal-link" data-page="${f}" type="button">${l}</button>`).join('')}</div></div>`,'settings');
  const a=document.querySelector('#appearance');a.value=readLS('theme')||'system';applyAppearance(a.value);a.onchange=()=>{writeLS('theme',a.value);applyAppearance(a.value)};
- const f=document.querySelector('#font');f.value=readLS('font')||'normal';f.onchange=()=>{document.body.classList.remove('large','xlarge');if(f.value!=='normal')document.body.classList.add(f.value);writeLS('font',f.value)};
+ const f=document.querySelector('#font');f.value=readLS('font')||'normal';f.onchange=()=>{document.documentElement.classList.remove('large','xlarge');if(f.value!=='normal')document.documentElement.classList.add(f.value);writeLS('font',f.value)};
  const snd=document.querySelector('#sound');snd.checked=sound.enabled;snd.onchange=()=>sound.setEnabled(snd.checked);
  document.querySelectorAll('.legal-link').forEach(b=>b.onclick=()=>{location.href=`legal/${b.dataset.page}.html`});
  document.querySelector('#pro').onclick=()=>pro?showToast('Your Pro plan is active.'):upgrade();
@@ -136,7 +136,7 @@ window.addEventListener('error',e=>console.error('MedWord runtime error:',e.erro
 window.addEventListener('unhandledrejection',e=>console.error('MedWord promise error:',e.reason));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPro(true).catch(()=>{})});
 applyAppearance(readLS('theme')||'system');
-const font=readLS('font');if(font&&font!=='normal')document.body.classList.add(font);
+const font=readLS('font');if(font&&font!=='normal')document.documentElement.classList.add(font);
 sound.init();
 pro=peekCachedPro();
 route('home');
