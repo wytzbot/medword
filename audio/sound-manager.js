@@ -5,6 +5,7 @@ let ctx=null, enabled=true, unlocked=false;
 let ambientTimer=null, ambientNodes=[];
 let successfulWordVolume=.07, pianoVolume=.06, voiceVolume=.8;
 let melodyIndex=-1, lastPhraseIndex=-1;
+let cachedVoices=[];
 
 const phrases=['Good!','Perfect!','Genius!','You killed it!','Excellent!','Brilliant!','Amazing!'];
 const melodies=[
@@ -30,7 +31,23 @@ function audio(){
  if(ctx.state==='suspended')ctx.resume().catch(()=>{});
  return ctx;
 }
-function unlock(){if(!enabled)return;unlocked=true;audio()}
+function refreshVoices(){
+ try{ cachedVoices = window.speechSynthesis.getVoices() }catch{ cachedVoices = [] }
+}
+function unlock(){
+ if(!enabled)return;
+ unlocked=true;
+ audio();
+ // Warm up the speech engine on the first user gesture so later speak() calls
+ // fire instantly instead of paying the cold-start init cost at complete() time.
+ if('speechSynthesis'in window && typeof SpeechSynthesisUtterance!=='undefined'){
+  try{
+   const warm = new SpeechSynthesisUtterance('');
+   warm.volume = 0;
+   window.speechSynthesis.speak(warm);
+  }catch{}
+ }
+}
 function chooseMelody(){
  if(melodyIndex>=0)return melodyIndex;
  try{
@@ -70,10 +87,14 @@ function chime(){
 function speak(){
  if(!enabled||voiceVolume<=0||!('speechSynthesis'in window)||typeof SpeechSynthesisUtterance==='undefined')return;
  try{
-  const synth=window.speechSynthesis;synth.cancel();
+  const synth=window.speechSynthesis;
+  // Only cancel if something is actually queued/playing — cancelling an idle
+  // engine forces an unnecessary teardown/restart that was the main source of delay.
+  if(synth.speaking||synth.pending) synth.cancel();
   let i;do{i=Math.floor(Math.random()*phrases.length)}while(phrases.length>1&&i===lastPhraseIndex);lastPhraseIndex=i;
   const u=new SpeechSynthesisUtterance(phrases[i]);u.volume=voiceVolume;u.rate=1.05;u.pitch=1;
-  const voices=synth.getVoices();const v=voices.find(x=>/^en(-|_)/i.test(x.lang))||voices.find(x=>/en/i.test(x.lang));if(v)u.voice=v;
+  const voices=cachedVoices.length?cachedVoices:synth.getVoices();
+  const v=voices.find(x=>/^en(-|_)/i.test(x.lang))||voices.find(x=>/en/i.test(x.lang));if(v)u.voice=v;
   synth.speak(u);
  }catch{}
 }
@@ -82,7 +103,11 @@ function stopAll(){stopAmbient();try{window.speechSynthesis?.cancel()}catch{}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAll()});window.addEventListener('pagehide',stopAll);
 export const sound={
  get enabled(){return enabled},
- init(){load();try{window.speechSynthesis?.getVoices()}catch{}},
+ init(){
+  load();
+  refreshVoices();
+  try{window.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices)}catch{}
+ },
  setEnabled(v){enabled=!!v;save('sound',enabled?'on':'off');if(!enabled)stopAll();else{unlock();startAmbient()}},
  start(){unlock();startAmbient()},
  stop(){stopAll()},
