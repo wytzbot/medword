@@ -1,5 +1,5 @@
-const C='medword-shell-v4';
-const ASSETS=['/','/index.html','/styles.css','/app.js','/game/puzzle-engine.js','/data/local-cache.js','/ai/word-service.js','/audio/sound-manager.js','/ui/ui.js','/ads/adsterra.js','/payments/flutterwave.js','/manifest.json','/icon.svg'];
+const C='medword-shell-v5';
+const ASSETS=['/','/index.html','/styles.css','/app.js','/game/puzzle-engine.js','/data/local-cache.js','/ai/word-service.js','/audio/sound-manager.js','/ui/ui.js','/ads/adsterra.js','/payments/flutterwave.js','/manifest.json','/icon.svg','/icon-192.png','/icon-512.png','/icon-192-maskable.png','/icon-512-maskable.png','/apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(async c=>{for(const u of ASSETS){try{await c.add(u)}catch{}}}));self.skipWaiting()});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('medword-')&&k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

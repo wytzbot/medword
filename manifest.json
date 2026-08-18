@@ -1,1 +1,21 @@
-{"name":"MedWord","short_name":"MedWord","start_url":"/","display":"standalone","background_color":"#091126","theme_color":"#101a35","description":"Medical word search game for anatomy, nursing, MLS, medicine, physiology, biology and more.","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "name": "MedWord — Medical Word Search",
+  "short_name": "MedWord",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#eef3ee",
+  "theme_color": "#2f5c50",
+  "description": "MedWord is a fast medical word-search game for anatomy, nursing, MLS, medicine, physiology, biology and more.",
+  "categories": ["education", "games", "medical"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

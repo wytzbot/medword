@@ -2,3 +2,31 @@
 
 .adwait{opacity:.55}.btn:disabled{opacity:.45;cursor:not-allowed}.premium-email{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}.premium-email .email{margin-top:0}.verify-status{margin-top:8px;min-height:20px}.price{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 @media(max-width:380px){.screen{padding-inline:12px}.cell{font-size:1rem}}
+
+/* ---- v2 polish: selection color variety, crossing legibility, instructions, motion & a11y ---- */
+.cell{transition:background-color .12s ease,color .12s ease}
+.cell.sel{background:var(--selcolor,rgba(79,70,229,.28));box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.cell.found{animation:foundPop .32s ease}
+.wordshint{color:var(--muted);font-size:.82rem;margin:-6px 0 2px;display:flex;align-items:center;gap:6px}
+.wordshint .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+.word{transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease;position:relative}
+.word:not(.done):active{transform:scale(.97)}
+.word.done{cursor:pointer}
+.word.done:hover{box-shadow:0 4px 14px rgba(38,51,45,.12);transform:translateY(-1px)}
+.word.done::after{content:'ⓘ';float:right;opacity:.55;font-size:.85em}
+.btn,.iconbtn,.back,.cat,.nav,.stat{transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,opacity .15s ease}
+.btn:active,.iconbtn:active,.back:active,.cat:active{transform:scale(.97)}
+.btn:hover:not(:disabled),.cat:hover{box-shadow:0 14px 30px rgba(38,51,45,.14);transform:translateY(-1px)}
+.nav:hover:not(.active){color:var(--text)}
+a,button,input,select,.word,.cat,.nav{outline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,.word:focus-visible,.cat:focus-visible{outline:2px solid var(--accent)}
+.progress i{background:linear-gradient(90deg,var(--primary),var(--accent))}
+.celebrate .modal{animation:pop .28s cubic-bezier(.2,.9,.3,1.2)}
+.sheet .modal{animation:slideUp .22s ease}
+.top{padding-top:env(safe-area-inset-top,0)}
+.bottom{padding-bottom:env(safe-area-inset-bottom,0)}
+.screen{padding-bottom:calc(24px + env(safe-area-inset-bottom,0))}
+@keyframes foundPop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes pop{0%{opacity:0;transform:scale(.92) translateY(6px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes slideUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.particle,.confetti i{display:none}}
