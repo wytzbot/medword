@@ -1,3 +1,0 @@
-let ctx;let enabled=true;
-function beep(freq,dur=.07){if(!enabled)return;try{ctx??=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume?.();const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=freq;o.connect(g);g.connect(ctx.destination);g.gain.value=.035;o.start();g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);o.stop(ctx.currentTime+dur)}catch(e){}}
-export const sound={get enabled(){return enabled},init(){enabled=localStorage.sound!=='off'},setEnabled(v){enabled=!!v;localStorage.sound=enabled?'on':'off'},hint(){beep(700,.12)},complete(){beep(700,.1);setTimeout(()=>beep(950,.14),100)}};
