@@ -1,6 +1,0 @@
-let ctx;let enabled=true;let ambientGain=null,ambientNodes=[];
-function audio(){ctx??=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume?.();return ctx}
-function beep(freq,dur=.07){if(!enabled)return;try{const c=audio(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=freq;o.connect(g);g.connect(c.destination);g.gain.value=.035;o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);o.stop(c.currentTime+dur)}catch{}}
-function startAmbient(){if(!enabled||ambientNodes.length)return;try{const c=audio();ambientGain=c.createGain();ambientGain.gain.value=.012;ambientGain.connect(c.destination);[174,261].forEach((f,i)=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;o.detune.value=i?4:-3;o.connect(ambientGain);o.start();ambientNodes.push(o)})}catch{}}
-function stopAmbient(){ambientNodes.forEach(o=>{try{o.stop()}catch{}});ambientNodes=[];ambientGain?.disconnect();ambientGain=null}
-export const sound={get enabled(){return enabled},init(){enabled=localStorage.sound!=='off'},setEnabled(v){enabled=!!v;localStorage.sound=enabled?'on':'off';if(enabled)startAmbient();else stopAmbient()},start(){startAmbient()},stop(){stopAmbient()},hint(){beep(700,.12)},found(){beep(820,.09)},complete(){beep(700,.1);setTimeout(()=>beep(950,.14),100)}};
