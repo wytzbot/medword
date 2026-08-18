@@ -12,8 +12,10 @@ let game=null, navigationToken=0, pro=false, paymentChecking=false;
 
 function particles(){return `<div class="bg">${Array.from({length:16},(_,i)=>`<i class="particle" style="left:${(i*17)%100}%;animation-delay:-${i%9}s;animation-duration:${9+i%7}s"></i>`).join('')}</div>`}
 function shell(content,active='home'){app.innerHTML=`<div class="app">${particles()}<main class="screen">${content}</main>${nav(active)}</div>`;bindNav()}
+function pushRoute(routeName){try{history.pushState({route:routeName},'',location.pathname+'#'+routeName)}catch{}}
+function goBack(){if(history.state?.route&&history.length>1)history.back();else home()}
 function nav(active){return `<nav class="bottom">${[['home','⌂','Home'],['play','▶','Play'],['progress','◔','Progress'],['badges','🏆','Badges'],['settings','⚙','Settings']].map(x=>`<button class="nav ${active===x[0]?'active':''}" data-nav="${x[0]}" type="button"><span>${x[1]}</span>${x[2]}</button>`).join('')}</nav>`}
-function bindNav(){document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>route(b.dataset.nav))}
+function bindNav(){document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{pushRoute(b.dataset.nav);route(b.dataset.nav)})}
 function home(){
  const p=store.profile;
  shell(`<div class="top"><div class="brand">Med<span>Word</span></div><button class="iconbtn" id="theme" type="button">☾</button></div>
@@ -25,11 +27,11 @@ function home(){
  document.querySelector('#theme').onclick=toggleTheme;
 }
 function toggleTheme(){const dark=!document.body.classList.contains('dark');document.body.classList.toggle('dark',dark);try{localStorage.theme=dark?'dark':'light'}catch{}}
-function play(category){const level=(store.progress[category]||0)+1;startGame(category,level)}
+function play(category){pushRoute('play');const level=(store.progress[category]||0)+1;startGame(category,level)}
 async function startGame(category,level){
  const token=++navigationToken;
  app.innerHTML=`<div class="app">${particles()}<main class="screen"><div class="top"><button class="back" id="back" type="button">‹</button><div class="gameinfo"><strong>${escapeHtml(category)}</strong><span class="muted">Level ${level}</span></div><span class="pill" id="count">0/0</span></div><div class="progress"><i id="bar" style="width:0%"></i></div><section class="game"><div class="boardwrap"><div id="board" class="board"></div></div><div class="words" id="words"></div><div class="gameactions"><button class="btn ghost" id="hint" type="button">💡 Hint <span id="hints"></span></button><button class="btn" id="skip" type="button">Next</button></div></section></main></div>`;
- document.querySelector('#back').onclick=()=>{navigationToken++;game=null;home()};
+ document.querySelector('#back').onclick=()=>goBack();
  let words;
  try{words=await requestWords(category,level)}catch(e){if(token===navigationToken)showToast('Could not load this level. Please try again.');return}
  if(token!==navigationToken)return;
@@ -56,7 +58,7 @@ function renderGame(category,level){
   hintEl.textContent=game.remainingHints===Infinity?'∞':game.remainingHints;
   if(found===total&&!game.finished)finish(category,level);
  };
- game.onUpdate=update;
+ game.onUpdate=update; game.onFound=()=>sound.found();
  document.querySelector('#hint').onclick=()=>{
   const w=game.hint();
   if(w){sound.hint();showToast(`Hint: ${w}`);update()}else showToast(game.remainingHints===0?'No hints left':'No hints available');
@@ -101,7 +103,10 @@ function badges(){
  shell(`<div class="top"><div class="brand">Badges</div></div>${list.join('')}`,'badges');
 }
 function settings(){
- shell(`<div class="top"><div class="brand">Settings</div></div><div class="card proline"><div class="row"><div><b>👑 MedWord Pro</b><div class="muted">${pro?'Active — unlimited hints, explanations & no ads':'Unlimited hints, explanations & no ads'}</div></div><button class="btn pro" id="pro" type="button">${pro?'Pro Active':'Upgrade'}</button></div></div>
+ shell(`<div class="top"><div class="brand">Settings</div></div><div class="card proline"><div class="row"><div><b>👑 MedWord Pro</b><div class="muted">${pro?'Active — unlimited hints, explanations & no ads':'Unlimited hints, explanations & no ads'}</div></div><button class="btn pro" id="pro" type="button">${pro?'Pro Active':'Upgrade'}</button></div>
+ <div class="price"><span>Monthly price</span><b>₦1,000 / $1</b></div>
+ <div class="premium-email"><input class="email" id="premiumEmail" type="email" maxlength="254" placeholder="Add your premium email" autocomplete="email" value="${escapeHtml(readLS('medwordEmail')||'')}"><button class="btn" id="verifyEmail" type="button">Verify</button></div>
+ <div class="verify-status muted" id="verifyStatus"></div></div>
  <div class="card"><div class="setting"><span>Appearance</span><select class="select" id="appearance"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
  <div class="setting"><span>Font size</span><select class="select" id="font"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></div>
  <div class="setting"><span>Sound effects</span><input id="sound" type="checkbox"></div></div>
@@ -111,6 +116,11 @@ function settings(){
  const snd=document.querySelector('#sound');snd.checked=sound.enabled;snd.onchange=()=>sound.setEnabled(snd.checked);
  document.querySelectorAll('.legal-link').forEach(b=>b.onclick=()=>{location.href=`legal/${b.dataset.page}.html`});
  document.querySelector('#pro').onclick=()=>pro?showToast('Your Pro plan is active.'):upgrade();
+ const emailInput=document.querySelector('#premiumEmail'),verifyBtn=document.querySelector('#verifyEmail'),status=document.querySelector('#verifyStatus');
+ const savedEmail=readLS('medwordEmail');if(savedEmail)status.textContent='Premium email saved. Verify to refresh your Pro status.';
+ emailInput.oninput=()=>{if(!emailInput.value.trim()){writeLS('medwordEmail','');pro=false;game?.setPro?.(false);status.textContent='Email removed — Free account.';}};
+ verifyBtn.onclick=async()=>{const email=emailInput.value.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){status.textContent='Enter a valid email.';return}writeLS('medwordEmail',email);verifyBtn.disabled=true;status.textContent='Verifying premium status…';const ok=await checkPro({force:true});pro=ok;game?.setPro?.(pro);verifyBtn.disabled=false;status.textContent=ok?'✓ Pro verified — your account is now Pro.':'Free account — this email has no active Pro entitlement.';};
+
 }
 function applyAppearance(v){document.body.classList.toggle('dark',v==='dark'||(v==='system'&&window.matchMedia?.('(prefers-color-scheme:dark)').matches))}
 async function upgrade(){
@@ -118,7 +128,7 @@ async function upgrade(){
  if(email){writeLS('medwordEmail',email);const ok=await startPro(email);if(!ok)showToast('Payment could not be started. Please try again.')}
 }
 async function refreshPro(force=false){pro=await checkPro({force});game?.setPro?.(pro);return pro}
-function route(r){({home,play:()=>play(store.profile.category||'Anatomy'),progress,badges,settings}[r]||home)()}
+function route(r){if(r==='play')startGame(store.profile.category||'Anatomy',(store.progress[store.profile.category||'Anatomy']||0)+1);else ({home,progress,badges,settings}[r]||home)()}
 async function handlePaymentReturn(){
  const params=new URLSearchParams(location.search);
  if(!params.has('tx_ref')&&!params.has('transaction_id'))return;
@@ -137,8 +147,10 @@ window.addEventListener('unhandledrejection',e=>console.error('MedWord promise e
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPro(true).catch(()=>{})});
 applyAppearance(readLS('theme')||'system');
 const font=readLS('font');if(font&&font!=='normal')document.documentElement.classList.add(font);
-sound.init();
+sound.init(); document.addEventListener('pointerdown',()=>sound.start(),{once:true});
 pro=peekCachedPro();
+try{history.replaceState({route:'home'},'',location.pathname+'#home');history.pushState({route:'home'},'',location.pathname+'#home')}catch{}
+window.addEventListener('popstate',()=>{navigationToken++;game=null;const r=location.hash.replace('#','');if(r==='play')route('play');else if(r){route(r)}else{try{history.pushState({route:'home'},'',location.pathname+'#home')}catch{}home()}});
 route('home');
 refreshPro().catch(()=>{});
 handlePaymentReturn();
