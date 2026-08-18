@@ -107,12 +107,14 @@ function settings(){
  <div class="price"><span>Monthly price</span><b>₦1,000 / $1</b></div>
  <div class="premium-email"><input class="email" id="premiumEmail" type="email" maxlength="254" placeholder="Add your premium email" autocomplete="email" value="${escapeHtml(readLS('medwordEmail')||'')}"><button class="btn" id="verifyEmail" type="button">Verify</button></div>
  <div class="verify-status muted" id="verifyStatus"></div></div>
- <div class="card"><div class="setting"><span>Appearance</span><select class="select" id="appearance"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
- <div class="setting"><span>Font size</span><select class="select" id="font"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></div>
+ <div class="card"><div class="setting"><span>Appearance</span>${renderDselect('appearance',[['system','System'],['light','Light'],['dark','Dark']],readLS('theme')||'system')}</div>
+ <div class="setting"><span>Font size</span>${renderDselect('font',[['normal','Normal'],['large','Large'],['xlarge','Extra large']],readLS('font')||'normal')}</div>
  <div class="setting"><span>Sound effects</span><input id="sound" type="checkbox"></div></div>
  <div class="card legal"><h3>Trust & information</h3><div class="list">${[['privacy','Privacy Policy'],['terms','Terms of Service'],['medical-disclaimer','Medical Disclaimer'],['advertising','Advertising Policy'],['subscription','Subscription & Refunds'],['contact','Contact']].map(([f,l])=>`<button class="btn ghost legal-link" data-page="${f}" type="button">${l}</button>`).join('')}</div></div>`,'settings');
- const a=document.querySelector('#appearance');a.value=readLS('theme')||'system';applyAppearance(a.value);a.onchange=()=>{writeLS('theme',a.value);applyAppearance(a.value)};
- const f=document.querySelector('#font');f.value=readLS('font')||'normal';f.onchange=()=>{document.documentElement.classList.remove('large','xlarge');if(f.value!=='normal')document.documentElement.classList.add(f.value);writeLS('font',f.value)};
+ applyAppearance(readLS('theme')||'system');
+ bindDselect('appearance',v=>{writeLS('theme',v);applyAppearance(v)});
+ bindDselect('font',v=>{document.documentElement.classList.remove('large','xlarge');if(v!=='normal')document.documentElement.classList.add(v);writeLS('font',v)});
+ initDselects();
  const snd=document.querySelector('#sound');snd.checked=sound.enabled;snd.onchange=()=>sound.setEnabled(snd.checked);
  document.querySelectorAll('.legal-link').forEach(b=>b.onclick=()=>{location.href=`legal/${b.dataset.page}.html`});
  document.querySelector('#pro').onclick=()=>pro?showToast('Your Pro plan is active.'):upgrade();
@@ -123,6 +125,28 @@ function settings(){
 
 }
 function applyAppearance(v){document.body.classList.toggle('dark',v==='dark'||(v==='system'&&window.matchMedia?.('(prefers-color-scheme:dark)').matches))}
+// Custom dropdown — a native <select>'s open list is drawn by the OS/browser
+// and can't be restyled, so settings use this fully-themed replacement instead.
+function renderDselect(id,options,current){
+ const cur=options.find(o=>o[0]===current)||options[0];
+ return `<div class="dselect" id="${id}" data-value="${escapeHtml(cur[0])}"><button type="button" class="dselect-btn" aria-haspopup="listbox"><span class="dselect-val">${escapeHtml(cur[1])}</span><span class="dselect-arrow">⌄</span></button><div class="dselect-menu" role="listbox">${options.map(([v,l])=>`<button type="button" class="dselect-opt${v===cur[0]?' active':''}" data-value="${escapeHtml(v)}" role="option">${escapeHtml(l)}</button>`).join('')}</div></div>`;
+}
+function bindDselect(id,onChange){
+ const el=document.querySelector('#'+id);
+ if(!el)return;
+ const btn=el.querySelector('.dselect-btn'),menu=el.querySelector('.dselect-menu'),val=el.querySelector('.dselect-val');
+ btn.onclick=ev=>{ev.stopPropagation();document.querySelectorAll('.dselect.open').forEach(o=>{if(o!==el)o.classList.remove('open')});el.classList.toggle('open')};
+ menu.querySelectorAll('.dselect-opt').forEach(opt=>{
+  opt.onclick=ev=>{ev.stopPropagation();const v=opt.dataset.value;el.dataset.value=v;val.textContent=opt.textContent;menu.querySelectorAll('.dselect-opt').forEach(o=>o.classList.toggle('active',o===opt));el.classList.remove('open');onChange(v)};
+ });
+}
+let dselectDocBound=false;
+function initDselects(){
+ if(dselectDocBound)return;
+ dselectDocBound=true;
+ document.addEventListener('click',e=>{document.querySelectorAll('.dselect.open').forEach(el=>{if(!el.contains(e.target))el.classList.remove('open')})});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.dselect.open').forEach(el=>el.classList.remove('open'))});
+}
 async function upgrade(){
  const email=await sheet(`<h2>👑 Unlock Pro</h2><p class="muted">Unlimited hints, full medical explanations and no ads.</p><input class="email" id="email" type="email" maxlength="254" placeholder="your@email.com" autocomplete="email"><button class="btn pro" id="pay" type="button">Continue to payment</button>`);
  if(email){writeLS('medwordEmail',email);const ok=await startPro(email);if(!ok)showToast('Payment could not be started. Please try again.')}
