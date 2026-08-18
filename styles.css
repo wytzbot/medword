@@ -40,5 +40,4 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,.w
 @keyframes pop{0%{opacity:0;transform:scale(.92) translateY(6px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes slideUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.particle,.confetti i{display:none}}
-.range{display:flex;align-items:center;gap:9px;min-width:155px}.range input{width:115px;accent-color:var(--primary)}.range output{min-width:38px;text-align:right;font-weight:800;color:var(--muted);font-size:.85rem}.sound-setting>span{flex:1}.sound-setting .range{flex-shrink:0}
-@media(max-width:420px){.range{min-width:130px}.range input{width:92px}}
+.sound-controls{margin-top:2px}.sound-control{display:flex;align-items:center;gap:10px;min-width:52%}.sound-control input[type="range"]{width:180px;accent-color:var(--primary)}.sound-control output{min-width:42px;text-align:right;font-weight:800;color:var(--muted);font-size:.85rem}.sound-setting>span{font-weight:650}@media(max-width:520px){.sound-control{min-width:55%;gap:6px}.sound-control input[type="range"]{width:120px}}

@@ -115,13 +115,30 @@ function settings(){
  <div class="verify-status muted" id="verifyStatus"></div></div>
  <div class="card"><div class="setting"><span>Appearance</span>${renderDselect('appearance',[['system','System'],['light','Light'],['dark','Dark']],readLS('theme')||'system')}</div>
  <div class="setting"><span>Font size</span>${renderDselect('font',[['normal','Normal'],['large','Large'],['xlarge','Extra large']],readLS('font')||'normal')}</div>
- <div class="setting"><span>Sound effects</span><input id="sound" type="checkbox"></div></div>
+ <div class="setting"><span>Sound effects</span><input id="sound" type="checkbox"></div>
+ <div class="sound-controls" id="soundControls">
+  <div class="setting sound-setting"><span>Successful word</span><div class="sound-control"><input id="successfulWordVolume" type="range" min="0" max="1" step="0.01"><output id="successfulWordValue">7%</output></div></div>
+  <div class="setting sound-setting"><span>Piano ambient</span><div class="sound-control"><input id="pianoVolume" type="range" min="0" max="1" step="0.01"><output id="pianoValue">6%</output></div></div>
+  <div class="setting sound-setting"><span>Level voice</span><div class="sound-control"><input id="voiceVolume" type="range" min="0" max="1" step="0.01"><output id="voiceValue">80%</output></div></div>
+ </div></div>
  <div class="card legal"><h3>Trust & information</h3><div class="list">${[['privacy','Privacy Policy'],['terms','Terms of Service'],['medical-disclaimer','Medical Disclaimer'],['advertising','Advertising Policy'],['subscription','Subscription & Refunds'],['contact','Contact']].map(([f,l])=>`<button class="btn ghost legal-link" data-page="${f}" type="button">${l}</button>`).join('')}</div></div>`,'settings');
  applyAppearance(readLS('theme')||'system');
  bindDselect('appearance',v=>{writeLS('theme',v);applyAppearance(v)});
  bindDselect('font',v=>{document.documentElement.classList.remove('large','xlarge');if(v!=='normal')document.documentElement.classList.add(v);writeLS('font',v)});
  initDselects();
- const snd=document.querySelector('#sound');snd.checked=sound.enabled;snd.onchange=()=>sound.setEnabled(snd.checked);
+ const snd=document.querySelector('#sound');
+ snd.checked=sound.enabled;
+ snd.onchange=()=>sound.setEnabled(snd.checked);
+ const volumes=sound.getVolumes();
+ const wordVol=document.querySelector('#successfulWordVolume');
+ const pianoVol=document.querySelector('#pianoVolume');
+ const voiceVol=document.querySelector('#voiceVolume');
+ const wordVal=document.querySelector('#successfulWordValue');
+ const pianoVal=document.querySelector('#pianoValue');
+ const voiceVal=document.querySelector('#voiceValue');
+ if(wordVol){wordVol.value=volumes.successfulWord;wordVal.textContent=Math.round(volumes.successfulWord*100)+'%';wordVol.oninput=()=>{sound.setSuccessfulWordVolume(wordVol.value);wordVal.textContent=Math.round(Number(wordVol.value)*100)+'%'}}
+ if(pianoVol){pianoVol.value=volumes.piano;pianoVal.textContent=Math.round(volumes.piano*100)+'%';pianoVol.oninput=()=>{sound.setPianoVolume(pianoVol.value);pianoVal.textContent=Math.round(Number(pianoVol.value)*100)+'%'}}
+ if(voiceVol){voiceVol.value=volumes.voice;voiceVal.textContent=Math.round(volumes.voice*100)+'%';voiceVol.oninput=()=>{sound.setVoiceVolume(voiceVol.value);voiceVal.textContent=Math.round(Number(voiceVol.value)*100)+'%'}}
  document.querySelectorAll('.legal-link').forEach(b=>b.onclick=()=>{location.href=`legal/${b.dataset.page}.html`});
  document.querySelector('#pro').onclick=()=>pro?showToast('Your Pro plan is active.'):upgrade();
  const emailInput=document.querySelector('#premiumEmail'),verifyBtn=document.querySelector('#verifyEmail'),status=document.querySelector('#verifyStatus');
